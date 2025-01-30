@@ -189,7 +189,7 @@ impl RgbArgs {
                              --esplora --mempool or --electrum argument")),
             }
             .map_err(WalletError::Resolver)?;
-        resolver.check(self.general.network)?;
+        resolver.check_chain_net(self.general.network.into())?;
         Ok(resolver)
     }
 }

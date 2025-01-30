@@ -52,7 +52,7 @@ use rgb::{
 use rgbstd::interface::{AllocatedState, ContractIface, OwnedIface};
 use rgbstd::persistence::{MemContractState, StockError};
 use rgbstd::stl::rgb_contract_stl;
-use rgbstd::{KnownState, Layer1, OutputAssignment};
+use rgbstd::{KnownState, OutputAssignment};
 use serde_crate::{Deserialize, Serialize};
 use strict_types::encoding::{FieldName, TypeName};
 use strict_types::StrictVal;
@@ -478,7 +478,7 @@ impl Exec for RgbArgs {
                         let resolver = self.resolver()?;
                         eprint!("- validating the contract {} ... ", contract.contract_id());
                         let contract = contract
-                            .validate(&resolver, self.general.network.is_testnet())
+                            .validate(&resolver, self.general.network.into())
                             .map_err(|(status, _)| {
                                 eprintln!("failure");
                                 status.to_string()
@@ -705,7 +705,7 @@ impl Exec for RgbArgs {
                     issuer.clone(),
                     *schema_id,
                     iface_id,
-                    Layer1::Bitcoin,
+                    self.general.network.into(),
                 )?;
                 let types = builder.type_system().clone();
 
@@ -1247,11 +1247,10 @@ impl Exec for RgbArgs {
                 let mut resolver = self.resolver()?;
                 let consignment = Transfer::load_file(file)?;
                 resolver.add_terminals(&consignment);
-                let status =
-                    match consignment.validate(&resolver, self.general.network.is_testnet()) {
-                        Ok(consignment) => consignment.into_validation_status(),
-                        Err((status, _)) => status,
-                    };
+                let status = match consignment.validate(&resolver, self.general.network.into()) {
+                    Ok(consignment) => consignment.into_validation_status(),
+                    Err((status, _)) => status,
+                };
                 if status.validity() == Validity::Valid {
                     eprintln!("The provided consignment is valid")
                 } else {
@@ -1265,7 +1264,7 @@ impl Exec for RgbArgs {
                 let transfer = Transfer::load_file(file)?;
                 resolver.add_terminals(&transfer);
                 let valid = transfer
-                    .validate(&resolver, self.general.network.is_testnet())
+                    .validate(&resolver, self.general.network.into())
                     .map_err(|(status, _)| status)?;
                 stock.accept_transfer(valid, &resolver)?;
                 eprintln!("Transfer accepted into the stash");
